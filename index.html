@@ -10,38 +10,52 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     :root {
-      --bg-color: #4DA1A9;
-      --text-color: #2E5077;
-      --textarea-bg: #79D7BE;
-      --textarea-text: #F6F4F0;
-      --button-bg: #2E5077;
+      --bg-color: #1f2d2f;
+      --text-color: #eee;
+      --textarea-bg: #355e57;
+      --textarea-text: #fff;
+      --button-bg: #46787b;
       --button-text: white;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg-color: #1f2d2f;
-        --text-color: #eee;
-        --textarea-bg: #355e57;
-        --textarea-text: #fff;
-        --button-bg: #46787b;
+        --bg-color: #ffffff;
+        --text-color: #2E5077;
+        --textarea-bg: #d4f4ec;
+        --textarea-text: #000000;
+        --button-bg: #2E5077;
         --button-text: white;
       }
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       font-family: 'Google Sans', Arial;
       margin: 0;
       padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      background-color: var(--bg-color);
-      text-align: center;
     }
 
     .hidden {
       display: none;
+    }
+
+    #app, #login {
+      width: 100%;
+      max-width: 1000px;
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
     }
 
     textarea {
@@ -54,9 +68,12 @@
       font-size: 18px;
       border: none;
       border-radius: 10px;
-      opacity: 0.8;
+      opacity: 0.85;
       resize: none;
-      transition: opacity 0.7s;
+    }
+
+    textarea:hover {
+      opacity: 1;
     }
 
     .status {
@@ -65,14 +82,11 @@
     }
 
     h1, p {
-      color: var(--text-color);
+      margin: 0;
+      padding: 5px;
     }
 
-    textarea:hover {
-      opacity: 1;
-    }
-
-    .login-box input {
+    input {
       display: block;
       padding: 10px;
       margin: 10px auto;
@@ -81,7 +95,7 @@
       border: none;
     }
 
-    .login-box button, #logoutBtn {
+    button {
       padding: 10px 20px;
       background-color: var(--button-bg);
       color: var(--button-text);
@@ -92,13 +106,13 @@
       transition: background-color 0.3s;
     }
 
-    .login-box button:hover, #logoutBtn:hover {
+    button:hover {
       background-color: #3b6a8a;
     }
   </style>
 </head>
 <body>
-  <div id="login" class="login-box">
+  <div id="login">
     <h1>Login</h1>
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
@@ -106,7 +120,7 @@
     <p class="status" id="loginStatus"></p>
   </div>
 
-  <div id="app" class="hidden">
+  <div id="app">
     <h1>Notes</h1>
     <p>By Isala Vineth</p>
     <textarea id="textInput" placeholder="Type something..."></textarea>
@@ -144,6 +158,8 @@
       auth.signInWithEmailAndPassword(email, password)
         .then(() => {
           loginStatus.textContent = "";
+          loginBox.style.display = 'none';
+          appBox.style.display = 'flex';
         })
         .catch((error) => {
           console.error(error);
@@ -157,11 +173,11 @@
 
     auth.onAuthStateChanged(user => {
       if (user) {
-        loginBox.classList.add('hidden');
-        appBox.classList.remove('hidden');
+        loginBox.style.display = 'none';
+        appBox.style.display = 'flex';
 
         // Load text
-        textRef.on('value', (snapshot) => {
+        textRef.once('value').then(snapshot => {
           const text = snapshot.val();
           if (text !== null) {
             textInput.value = text;
@@ -181,9 +197,14 @@
             });
         });
 
+        // Sign out on tab/browser close
+        window.addEventListener('beforeunload', () => {
+          auth.signOut();
+        });
+
       } else {
-        loginBox.classList.remove('hidden');
-        appBox.classList.add('hidden');
+        appBox.style.display = 'none';
+        loginBox.style.display = 'flex';
       }
     });
   </script>
